@@ -23,7 +23,7 @@ export default function Dashboard() {
                     <div>
                         <h1 className={styles.title}>Welcome back, John!</h1>
                         <p className={styles.subtitle}>
-                            You're on track for your Band 8.5 target. Ready for today's task?
+                            You&apos;re on track for your Band 8.5 target. Ready for today&apos;s task?
                         </p>
                     </div>
                     <div className={styles.stats}>
