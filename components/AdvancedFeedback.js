@@ -29,6 +29,11 @@ const diffWords = (original, corrected) => {
 };
 
 export default function AdvancedFeedback({ evaluation, onBack }) {
+    const wordDiffs = useMemo(() => {
+        if (!evaluation) return [];
+        return diffWords(evaluation.originalText, evaluation.correctedText);
+    }, [evaluation]);
+
     if (!evaluation) return null;
 
     const {
@@ -39,8 +44,6 @@ export default function AdvancedFeedback({ evaluation, onBack }) {
         correctedText,
         categories
     } = evaluation;
-
-    const wordDiffs = useMemo(() => diffWords(originalText, correctedText), [originalText, correctedText]);
 
     return (
         <div className={styles.container}>
