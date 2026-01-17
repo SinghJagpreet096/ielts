@@ -1,0 +1,57 @@
+.counter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1rem;
+    background: var(--bg-primary);
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+.icon {
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+.count {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    min-width: 5rem;
+    text-align: center;
+}
+
+.label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+/* Status colors */
+.counter.under {
+    background: #fef2f2;
+}
+
+.counter.under .icon,
+.counter.under .count {
+    color: var(--danger);
+}
+
+.counter.close {
+    background: #fffbeb;
+}
+
+.counter.close .icon,
+.counter.close .count {
+    color: var(--warning);
+}
+
+.counter.good {
+    background: #f0fdf4;
+}
+
+.counter.good .icon,
+.counter.good .count {
+    color: var(--success);
+}
