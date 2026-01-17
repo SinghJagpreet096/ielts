@@ -7,6 +7,7 @@ import Timer from '@/components/Timer';
 import WordCounter from '@/components/WordCounter';
 import TaskInstructions from '@/components/TaskInstructions';
 import TextEditor from '@/components/TextEditor';
+import AdvancedFeedback from '@/components/AdvancedFeedback';
 import { getTaskById } from '@/data/tasks';
 import { savePracticeSession, loadPracticeSession, clearPracticeSession, saveToHistory } from '@/utils/storage';
 import { countWords } from '@/utils/wordCount';
@@ -20,6 +21,8 @@ export default function PracticePage({ params: paramsPromise }) {
     const [content, setContent] = useState('');
     const [timeRemaining, setTimeRemaining] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [evaluation, setEvaluation] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const taskData = getTaskById(params.type);
@@ -49,80 +52,124 @@ export default function PracticePage({ params: paramsPromise }) {
     };
 
     const handleSubmit = async () => {
-        if (!task) return;
+        if (!task || !content.trim()) return;
 
         setIsSubmitting(true);
+        setError(null);
 
-        const wordCount = countWords(content);
-        const timeSpent = task.timeLimit * 60 - timeRemaining;
+        try {
+            const response = await fetch('/api/evaluate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    taskType: task.type,
+                    taskPrompt: task.prompt,
+                    userResponse: content,
+                }),
+            });
 
-        // Save to history
-        saveToHistory(task.id, task.type, content, wordCount, timeSpent);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Evaluation failed');
+            }
 
-        // Clear current session
-        clearPracticeSession();
+            const data = await response.json();
+            setEvaluation(data);
 
-        // Redirect to dashboard with success message
-        setTimeout(() => {
-            router.push('/dashboard');
-        }, 500);
+            const wordCount = countWords(content);
+            const timeSpent = task.timeLimit * 60 - timeRemaining;
+
+            // Save to history
+            saveToHistory(task.id, task.type, content, wordCount, timeSpent);
+
+            // Clear current session
+            clearPracticeSession();
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     if (!task) {
         return (
-            <>
-                <Sidebar />
-                <div className={styles.loading}>Loading...</div>
-            </>
+            <div className={styles.loading}>Loading task...</div>
         );
     }
 
     const wordCount = countWords(content);
 
     return (
-        <>
-            <Sidebar />
-            <main className={styles.practice}>
-                <header className={styles.header}>
-                    <div className={styles.taskInfo}>
-                        <span className={styles.taskBadge}>
-                            {task.type === 'task1' ? 'Task 1' : 'Task 2'}
-                        </span>
-                        <h1 className={styles.taskTitle}>{task.title}</h1>
-                    </div>
+        <main className={styles.practice}>
+            <header className={styles.header}>
+                <div className={styles.taskInfo}>
+                    <button
+                        onClick={() => router.push('/dashboard')}
+                        className={styles.backBtn}
+                        title="Back to Dashboard"
+                    >
+                        ←
+                    </button>
+                    <span className={styles.taskBadge}>
+                        {task.type === 'task1' ? 'Task 1' : 'Task 2'}
+                    </span>
+                    <h1 className={styles.taskTitle}>{task.title}</h1>
+                </div>
 
-                    <div className={styles.headerStats}>
-                        <WordCounter
-                            currentCount={wordCount}
-                            minimumCount={task.wordCountMin}
-                        />
-                        <Timer
-                            initialTime={timeRemaining}
-                            taskId={task.id}
-                            onTimeUpdate={handleTimeUpdate}
-                        />
-                    </div>
-                </header>
+                <div className={styles.headerStats}>
+                    <WordCounter
+                        currentCount={wordCount}
+                        minimumCount={task.wordCountMin}
+                    />
+                    <Timer
+                        initialTime={timeRemaining}
+                        taskId={task.id}
+                        onTimeUpdate={handleTimeUpdate}
+                    />
+                </div>
+            </header>
 
-                <div className={styles.content}>
-                    <TaskInstructions task={task} />
-                    <div className={styles.editorSection}>
-                        <TextEditor
-                            content={content}
-                            onChange={handleContentChange}
-                            taskId={task.id}
-                            timeRemaining={timeRemaining}
-                        />
-                        <button
-                            className={styles.submitBtn}
-                            onClick={handleSubmit}
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? 'Submitting...' : 'Submit for Evaluation ➔'}
-                        </button>
+            <div className={styles.content}>
+                <TaskInstructions task={task} />
+                <div className={styles.editorSection}>
+                    <TextEditor
+                        content={content}
+                        onChange={handleContentChange}
+                        taskId={task.id}
+                        timeRemaining={timeRemaining}
+                    />
+                    {error && <div className={styles.error}>{error}</div>}
+                    <button
+                        className={styles.submitBtn}
+                        onClick={handleSubmit}
+                        disabled={isSubmitting || wordCount < 10}
+                    >
+                        {isSubmitting ? 'Evaluating...' : 'Submit for AI Evaluation ➔'}
+                    </button>
+                </div>
+            </div>
+
+            {isSubmitting && (
+                <div className={styles.overlay}>
+                    <div className={styles.loader}>
+                        <div className={styles.spinner}></div>
+                        <h2>Analyzing your response...</h2>
+                        <p>Our AI is evaluating your writing against IELTS standards.</p>
                     </div>
                 </div>
-            </main>
-        </>
+            )}
+
+            {evaluation && (
+                <div className={styles.modalOverlay}>
+                    <AdvancedFeedback
+                        evaluation={evaluation}
+                        onBack={() => {
+                            setEvaluation(null);
+                            router.push('/dashboard');
+                        }}
+                    />
+                </div>
+            )}
+        </main>
     );
 }

@@ -55,10 +55,31 @@
     align-items: center;
 }
 
+.backBtn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+}
+
+.backBtn:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
 .content {
     flex: 1;
     display: grid;
-    grid-template-columns: 400px 1fr;
+    grid-template-columns: auto 1fr;
     gap: 0;
     overflow: hidden;
 }
@@ -89,6 +110,85 @@
 .submitBtn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+}
+
+.error {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+}
+
+.loader {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-lg);
+    max-width: 400px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-light);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loader h2 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.loader p {
+    color: var(--text-secondary);
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modalOverlay>div {
+    width: 100%;
+    height: 100%;
 }
 
 @media (max-width: 1024px) {
