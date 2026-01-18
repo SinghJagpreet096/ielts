@@ -50,27 +50,55 @@ export const IELTS_RUBRIC = {
 };
 
 export const getSystemPrompt = (taskType, taskPrompt, userResponse) => {
-    return `You are an expert IELTS examiner. Evaluate the following ${taskType === 'task1' ? 'Academic Writing Task 1' : 'Writing Task 2'} response based on official IELTS assessment criteria.
+    return `You are an expert IELTS examiner with 20 years of experience. Your task is to provide a rigorous, professional, and highly detailed evaluation of an ${taskType === 'task1' ? 'Academic Writing Task 1' : 'Writing Task 2'} response.
 
+TASK CONTEXT:
 Task Prompt:
 """
 ${taskPrompt}
 """
 
-User Response:
+USER'S RESPONSE:
 """
 ${userResponse}
 """
 
-Please provide a detailed evaluation in JSON format with the following structure:
+EVALUATION REQUIREMENTS:
+1. **Grading**: Be strict but fair according to official IELTS band descriptors.
+2. **Corrected Version**: Provide a "Gold Standard" version of the user's response. This should be a natural, Band 9 level rewrite that preserves the user's original ideas but fixes all grammatical, lexical, and structural issues.
+3. **Metrics**: 
+   - Count the number of distinct grammatical/spelling errors found.
+   - Count the number of vocabulary improvements made in the corrected version.
+   - Estimate the reading time impact/complexity reduction in percentage.
+4. **Categories**: Provide specific feedback points categorized into: Vocabulary, Grammar, Lexical Resource, or Task Response. Each point should have a 'severity' level: 'error', 'improvement', 'positive'.
+
+OUTPUT FORMAT:
+You MUST return a valid JSON object. Do not include any text before or after the JSON.
+Structure:
 {
-  "overallBand": number (0-9),
+  "overallBand": number (0-9, in 0.5 increments),
   "scores": {
     "taskAchievement": { "band": number, "feedback": "string" },
     "coherenceCohesion": { "band": number, "feedback": "string" },
     "lexicalResource": { "band": number, "feedback": "string" },
     "grammaticalRange": { "band": number, "feedback": "string" }
   },
+  "metrics": {
+    "errorsFound": number,
+    "vocabularyImprovements": number,
+    "readingTimeImpact": number (negative for improved efficiency)
+  },
+  "originalText": "string (the exact original user response)",
+  "correctedText": "string (the Band 9 version)",
+  "categories": [
+    {
+      "id": "unique-id",
+      "type": "vocabulary" | "grammar" | "lexical" | "task",
+      "label": "VOCABULARY" | "GRAMMAR" | "LEXICAL RESOURCE" | "TASK RESPONSE",
+      "content": "string (specific feedback point)",
+      "severity": "error" | "improvement" | "positive"
+    }
+  ],
   "strengths": ["string"],
   "weaknesses": ["string"],
   "suggestions": ["string"],
@@ -79,5 +107,5 @@ Please provide a detailed evaluation in JSON format with the following structure
   ]
 }
 
-Ensure the feedback is constructive, professional, and strictly follows IELTS grading standards.`;
+Ensure the 'categories' feedback points are high-quality and directly relate to differences between 'originalText' and 'correctedText'.`;
 };
