@@ -9,8 +9,10 @@ export default function Timer({ initialTime, taskId, onTimeUpdate }) {
     const intervalRef = useRef(null);
 
     useEffect(() => {
+        // We only want to set the internal state when the taskId changes (new session)
+        // or if it's the very first render.
         setTimeRemaining(initialTime);
-    }, [initialTime]);
+    }, [taskId]); // Depend on taskId instead of initialTime to break the loop
 
     useEffect(() => {
         // Start countdown
@@ -20,11 +22,7 @@ export default function Timer({ initialTime, taskId, onTimeUpdate }) {
                     clearInterval(intervalRef.current);
                     return 0;
                 }
-                const newTime = prev - 1;
-                if (onTimeUpdate) {
-                    onTimeUpdate(newTime);
-                }
-                return newTime;
+                return prev - 1;
             });
         }, 1000);
 
@@ -33,7 +31,14 @@ export default function Timer({ initialTime, taskId, onTimeUpdate }) {
                 clearInterval(intervalRef.current);
             }
         };
-    }, [onTimeUpdate]);
+    }, []); // Only run once on mount
+
+    // Separate effect to notify parent when internal time changes
+    useEffect(() => {
+        if (onTimeUpdate) {
+            onTimeUpdate(timeRemaining);
+        }
+    }, [timeRemaining, onTimeUpdate]);
 
     const isLow = isTimeLow(timeRemaining);
 
